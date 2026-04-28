@@ -6,7 +6,7 @@ export const NGO_NEWS = [
     category: "Impact",
     date: "April 15, 2026",
     link: "https://www.pointsoflight.org",
-    image: "https://images.unsplash.com/photo-1559027615-cd2673675250?auto=format&fit=crop&q=80&w=800"
+    image: "https://images.unsplash.com/photo-1593113598332-cd288d649433?auto=format&fit=crop&q=80&w=800"
   },
   {
     id: 2,

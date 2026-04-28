@@ -5,6 +5,7 @@ import {
   onAuthStateChanged,
   updateProfile,
   sendPasswordResetEmail,
+  sendEmailVerification,
 } from "firebase/auth";
 import { doc, setDoc, getDoc, serverTimestamp } from "firebase/firestore";
 import { auth, db, firebaseConfigured } from "./firebase";
@@ -32,6 +33,9 @@ export async function signUpUser(email, password, role, displayName = "") {
     role, // "ngo" or "volunteer"
     createdAt: serverTimestamp(),
   });
+
+  // Send verification email
+  await sendEmailVerification(user);
 
   return user;
 }

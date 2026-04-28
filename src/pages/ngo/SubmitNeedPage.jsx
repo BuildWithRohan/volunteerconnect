@@ -2,11 +2,12 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
 import { addNeed } from "../../services/needsService";
+import { uploadFile } from "../../services/storageService";
 import { scoreUrgency } from "../../ai/urgencyScorer";
 import NGOSidebar from "../../components/layout/NGOSidebar";
 import UrgencyBadge from "../../components/common/UrgencyBadge";
 import {
-  FileText, MapPin, Tag, Send, Loader2, ArrowLeft, Sparkles,
+  FileText, MapPin, Tag, Send, Loader2, ArrowLeft, Sparkles, Image as ImageIcon, FileUp,
 } from "lucide-react";
 
 const CATEGORIES = [
@@ -27,7 +28,10 @@ export default function SubmitNeedPage() {
     contactPhone: "",
     requirements: "",
   });
+  const [photoFile, setPhotoFile] = useState(null);
+  const [surveyFile, setSurveyFile] = useState(null);
   const [urgencyScore, setUrgencyScore] = useState(null);
+  const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
   const { user } = useAuth();
@@ -59,12 +63,20 @@ export default function SubmitNeedPage() {
       );
     }
   }, []);
-
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
 
     try {
+      setError(""); // Reset error
+      // Parallel uploads for faster submission
+      const uploadPromises = [
+        photoFile ? uploadFile(photoFile, `needs/photos/${Date.now()}_${photoFile.name}`) : Promise.resolve(""),
+        surveyFile ? uploadFile(surveyFile, `needs/surveys/${Date.now()}_${surveyFile.name}`) : Promise.resolve(""),
+      ];
+
+      const [photoURL, surveyURL] = await Promise.all(uploadPromises);
+
       const score = scoreUrgency(formData.description);
 
       await addNeed({
@@ -78,12 +90,15 @@ export default function SubmitNeedPage() {
         contactPerson: formData.contactPerson,
         contactPhone: formData.contactPhone,
         requirements: formData.requirements,
+        photoURL,
+        surveyURL,
       });
 
       setSuccess(true);
       setTimeout(() => navigate("/ngo/dashboard"), 2000);
     } catch (err) {
       console.error("Failed to submit need:", err);
+      setError(err.message || "Failed to upload files. Please check your Firebase Storage rules.");
     } finally {
       setLoading(false);
     }
@@ -133,6 +148,17 @@ export default function SubmitNeedPage() {
         <p style={{ fontFamily: "'Plus Jakarta Sans', sans-serif", fontWeight: 400, fontSize: 15, color: "#6B7280", marginBottom: 32 }}>
           Describe a community need and our AI will assess its urgency
         </p>
+
+        {error && (
+          <div style={{
+            marginBottom: 24, padding: 16, background: "#FFE8F2", border: "1.5px solid #FF4D8D",
+            borderRadius: 16, color: "#1A1A2E", fontFamily: "'Plus Jakarta Sans', sans-serif", fontSize: 14,
+            animation: "fadeUp 0.3s ease-out"
+          }}>
+            <p style={{ fontWeight: 700, marginBottom: 4 }}>Submission Error ⚠️</p>
+            {error}
+          </div>
+        )}
 
         <form
           onSubmit={handleSubmit}
@@ -216,6 +242,7 @@ export default function SubmitNeedPage() {
             />
           </div>
 
+          {/* Contact & Files */}
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
             <div>
               <label className="input-label" htmlFor="contact-person">Contact Person</label>
@@ -229,6 +256,33 @@ export default function SubmitNeedPage() {
                 placeholder="10 digit number" value={formData.contactPhone}
                 maxLength={10}
                 onChange={(e) => updateField("contactPhone", e.target.value.replace(/\D/g, "").slice(0, 10))} required />
+            </div>
+          </div>
+
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
+            <div>
+              <label className="input-label">
+                <ImageIcon size={14} style={{ display: "inline", marginRight: 4, verticalAlign: "middle" }} />
+                Need Photo
+              </label>
+              <input 
+                type="file" 
+                accept="image/*"
+                onChange={(e) => setPhotoFile(e.target.files[0])}
+                style={{ fontSize: 12 }}
+              />
+            </div>
+            <div>
+              <label className="input-label">
+                <FileUp size={14} style={{ display: "inline", marginRight: 4, verticalAlign: "middle" }} />
+                Survey PDF
+              </label>
+              <input 
+                type="file" 
+                accept="application/pdf"
+                onChange={(e) => setSurveyFile(e.target.files[0])}
+                style={{ fontSize: 12 }}
+              />
             </div>
           </div>
 
@@ -250,7 +304,10 @@ export default function SubmitNeedPage() {
           <button type="submit" disabled={loading} className="btn-accent"
             id="submit-need-btn" style={{ width: "100%", height: 52, borderRadius: 12 }}>
             {loading ? (
-              <Loader2 className="w-5 h-5 animate-spin" />
+              <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 10 }}>
+                <Loader2 className="w-5 h-5 animate-spin" />
+                <span>Uploading Files...</span>
+              </div>
             ) : (
               <><Send size={18} /> Submit Need Report</>
             )}

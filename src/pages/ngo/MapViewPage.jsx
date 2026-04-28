@@ -24,10 +24,20 @@ export default function MapViewPage() {
   const [needs, setNeeds] = useState([]);
   const [loading, setLoading] = useState(true);
   const [assigning, setAssigning] = useState(null);
+  const [userLoc, setUserLoc] = useState(null);
   const navigate = useNavigate();
   const toast = useToast();
 
   useEffect(() => {
+    // Detect user location
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        (pos) => setUserLoc({ lat: pos.coords.latitude, lng: pos.coords.longitude }),
+        null,
+        { enableHighAccuracy: true, timeout: 10000 }
+      );
+    }
+
     const unsub = subscribeToOpenNeeds((data) => {
       setNeeds(data);
       setLoading(false);
@@ -66,9 +76,13 @@ export default function MapViewPage() {
     }
   };
 
-  const mapCenter = needs.length > 0 && needs[0].lat
-    ? [needs[0].lat, needs[0].lng]
-    : defaultCenter;
+  const mapCenter = userLoc 
+    ? [userLoc.lat, userLoc.lng]
+    : needs.length > 0 && needs[0].lat
+      ? [needs[0].lat, needs[0].lng]
+      : defaultCenter;
+
+  const mapZoom = userLoc ? 12 : 5;
 
   return (
     <NGOSidebar>
@@ -112,7 +126,7 @@ export default function MapViewPage() {
           ) : (
             <MapContainer
               center={mapCenter}
-              zoom={5}
+              zoom={mapZoom}
               style={{ width: "100%", height: "100%" }}
               scrollWheelZoom={true}
             >

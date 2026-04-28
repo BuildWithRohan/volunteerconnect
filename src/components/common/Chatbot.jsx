@@ -42,19 +42,40 @@ export default function Chatbot() {
     if (q.includes("how to use") || q.includes("app") || q.includes("guide")) return RESPONSES.how_to_use;
     if (q.includes("profile") || q.includes("edit") || q.includes("change")) return RESPONSES.profile;
     if (q.includes("submit") || q.includes("report") || q.includes("ngo")) return RESPONSES.submit;
-    return RESPONSES.default;
+    return null; // Fallback to Gemini
   };
 
-  const processQuery = (text) => {
+  const processQuery = async (text) => {
     const userMsg = { id: Date.now(), text, isBot: false };
     setMessages(prev => [...prev, userMsg]);
     setIsTyping(true);
 
-    setTimeout(() => {
-      const response = getAIResponse(text);
-      setMessages(prev => [...prev, { id: Date.now() + 1, text: response, isBot: true }]);
+    try {
+      const curated = getAIResponse(text);
+      if (curated) {
+        setTimeout(() => {
+          setMessages(prev => [...prev, { id: Date.now() + 1, text: curated, isBot: true }]);
+          setIsTyping(false);
+        }, 600);
+        return;
+      }
+
+      const response = await fetch("http://localhost:3001/api/generate", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ 
+          prompt: `You are Bridgey, a helpful NGO coordinator for the VolunteerBridge platform. 
+          The user asked: "${text}". Answer concisely and helpfully.` 
+        }),
+      });
+
+      const data = await response.json();
+      setMessages(prev => [...prev, { id: Date.now() + 1, text: data.text || RESPONSES.default, isBot: true }]);
+    } catch (err) {
+      setMessages(prev => [...prev, { id: Date.now() + 1, text: RESPONSES.default, isBot: true }]);
+    } finally {
       setIsTyping(false);
-    }, 800);
+    }
   };
 
   const handleSend = (e) => {

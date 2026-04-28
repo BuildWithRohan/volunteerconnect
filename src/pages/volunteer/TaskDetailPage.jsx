@@ -208,24 +208,64 @@ export default function TaskDetailPage() {
         )}
 
         {/* Contact Person */}
-        <div style={{
-          background: "white", borderRadius: 20, padding: 24,
-          boxShadow: "0 4px 24px rgba(107,78,255,0.10)", marginBottom: 16,
-        }}>
-          <h3 style={{
-            fontFamily: "'Nunito', sans-serif", fontWeight: 700, fontSize: 16,
-            color: "#1A1A2E", marginBottom: 12,
-            display: "flex", alignItems: "center", gap: 8,
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16, marginBottom: 16 }}>
+          <div style={{
+            background: "white", borderRadius: 20, padding: 24,
+            boxShadow: "0 4px 24px rgba(107,78,255,0.10)",
           }}>
-            <User size={16} color="#6B4EFF" /> On-site Contact
-          </h3>
-          <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-            <p style={{ display: "flex", alignItems: "center", gap: 8, fontFamily: "'Plus Jakarta Sans', sans-serif", fontSize: 14, color: "#1A1A2E", fontWeight: 600 }}>
-              {need?.contactPerson || "NGO Coordinator"}
-            </p>
-            <p style={{ display: "flex", alignItems: "center", gap: 8, fontFamily: "'Plus Jakarta Sans', sans-serif", fontSize: 14, color: "#6B7280" }}>
-              <Phone size={16} color="#9CA3AF" /> {need?.contactPhone ? `+91 ${need.contactPhone}` : "+91 98765 43210"}
-            </p>
+            <h3 style={{
+              fontFamily: "'Nunito', sans-serif", fontWeight: 700, fontSize: 16,
+              color: "#1A1A2E", marginBottom: 12,
+              display: "flex", alignItems: "center", gap: 8,
+            }}>
+              <User size={16} color="#6B4EFF" /> On-site Contact
+            </h3>
+            <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+              <p style={{ display: "flex", alignItems: "center", gap: 8, fontFamily: "'Plus Jakarta Sans', sans-serif", fontSize: 14, color: "#1A1A2E", fontWeight: 600 }}>
+                {need?.contactPerson || "NGO Coordinator"}
+              </p>
+              <p style={{ display: "flex", alignItems: "center", gap: 8, fontFamily: "'Plus Jakarta Sans', sans-serif", fontSize: 14, color: "#6B7280" }}>
+                <Phone size={16} color="#9CA3AF" /> {need?.contactPhone ? `+91 ${need.contactPhone}` : "+91 98765 43210"}
+              </p>
+            </div>
+          </div>
+
+          <div style={{
+            background: "white", borderRadius: 20, padding: 24,
+            boxShadow: "0 4px 24px rgba(107,78,255,0.10)",
+            display: "flex", flexDirection: "column", gap: 12,
+          }}>
+            <h3 style={{
+              fontFamily: "'Nunito', sans-serif", fontWeight: 700, fontSize: 16,
+              color: "#1A1A2E", marginBottom: 0,
+              display: "flex", alignItems: "center", gap: 8,
+            }}>
+              <FileText size={16} color="#6B4EFF" /> Documents
+            </h3>
+            <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+              {need?.photoURL ? (
+                <a href={need.photoURL} target="_blank" rel="noopener noreferrer" style={{
+                  display: "flex", alignItems: "center", gap: 8, textDecoration: "none",
+                  padding: "8px 12px", background: "#F3F4F6", borderRadius: 10,
+                  fontFamily: "'Plus Jakarta Sans', sans-serif", fontSize: 13, color: "#1A1A2E", fontWeight: 500,
+                }}>
+                  <ImageIcon size={14} color="#6B4EFF" /> View Need Photo
+                </a>
+              ) : (
+                <p style={{ fontSize: 12, color: "#9CA3AF" }}>No photo uploaded</p>
+              )}
+              {need?.surveyURL ? (
+                <a href={need.surveyURL} target="_blank" rel="noopener noreferrer" style={{
+                  display: "flex", alignItems: "center", gap: 8, textDecoration: "none",
+                  padding: "8px 12px", background: "#EDE9FF", borderRadius: 10,
+                  fontFamily: "'Plus Jakarta Sans', sans-serif", fontSize: 13, color: "#6B4EFF", fontWeight: 600,
+                }}>
+                  <FileUp size={14} color="#6B4EFF" /> Download Survey PDF
+                </a>
+              ) : (
+                <p style={{ fontSize: 12, color: "#9CA3AF" }}>No survey PDF</p>
+              )}
+            </div>
           </div>
         </div>
 
